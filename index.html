@@ -1,1 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UF Museum: LCA SimCity Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@400;700;900&display=swap');
+        
+        :root {
+            --uf-orange: #FF7000;
+            --uf-blue: #0021A5;
+            --sim-bg: #2d5a27; /* Classic SimCity Green */
+            --panel-bg: #d1d5db;
+            --panel-border-light: #f3f4f6;
+            --panel-border-dark: #4b5563;
+        }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--sim-bg);
+            background-image: 
+                linear-gradient(45deg, #34632d 25%, transparent 25%), 
+                linear-gradient(-45deg, #34632d 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #34632d 75%), 
+                linear-gradient(-45deg, transparent 75%, #34632d 75%);
+            background-size: 40px 40px;
+            background-position: 0 0, 0 20px, 20px 20px, 20px 0;
+            color: #111827;
+            overflow-x: hidden;
+        }
+
+        .sim-panel {
+            background-color: var(--panel-bg);
+            border-top: 4px solid var(--panel-border-light);
+            border-left: 4px solid var(--panel-border-light);
+            border-right: 4px solid var(--panel-border-dark);
+            border-bottom: 4px solid var(--panel-border-dark);
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.3);
+        }
+
+        .sim-button {
+            background-color: #9ca3af;
+            border-top: 3px solid #f3f4f6;
+            border-left: 3px solid #f3f4f6;
+            border-right: 3px solid #374151;
+            border-bottom: 3px solid #374151;
+            transition: all 0.1s;
+        }
+
+        .sim-button:active {
+            border-top: 3px solid #374151;
+            border-left: 3px solid #374151;
+            border-right: 3px solid #f3f4f6;
+            border-bottom: 3px solid #f3f4f6;
+            transform: translate(2px, 2px);
+        }
+
+        .pixel-font {
+            font-family: 'VT323', monospace;
+        }
+
+        .ticker-container {
+            background: #000;
+            color: #0f0;
+            border: 3px solid var(--panel-border-dark);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .ticker-text {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker 25s linear infinite;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+        }
+
+        @keyframes ticker {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+
+        .stat-led {
+            background: #111;
+            border: 2px inset #444;
+            padding: 4px 10px;
+            color: #3bfd3b;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px #3bfd3b;
+        }
+
+        .gator-gradient {
+            background: linear-gradient(135deg, var(--uf-blue) 0%, #00166d 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Top Bar -->
+    <div class="w-full gator-gradient text-white p-2 border-b-4 border-black flex justify-between items-center shadow-2xl">
+        <div class="flex items-center space-x-3">
+            <div class="bg-white p-1 rounded">
+                <svg width="30" height="30" viewBox="0 0 100 100" fill="var(--uf-blue)">
+                    <rect x="10" y="10" width="80" height="80" rx="5" fill="var(--uf-orange)"/>
+                    <path d="M30 30h40v40H30z" fill="white"/>
+                    <path d="M40 40h20v20H40z" fill="var(--uf-blue)"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="pixel-font text-2xl leading-none">UF-CITY: LCA MANAGER</h1>
+                <p class="text-[10px] uppercase font-bold tracking-widest text-orange-400">Gainesville Municipal Authority</p>
+            </div>
+        </div>
+        <div class="flex space-x-4 pr-4">
+            <div class="text-right">
+                <div class="text-[10px] uppercase opacity-70">Project Date</div>
+                <div class="pixel-font text-xl">OCT 2024</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticker -->
+    <div class="ticker-container py-1">
+        <div id="ticker" class="ticker-text">
+            ADVISOR: WELCOME MAYOR... UF NATURAL HISTORY MUSEUM PROJECT IS UNDERWAY... CITIZENS DEMAND SUSTAINABILITY... WATCH YOUR BUDGET... GATORS ARE WATCHING...
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto mt-6 grid grid-cols-12 gap-6 p-4">
+        
+        <!-- Left Stats Sidebar (Sim Style) -->
+        <div class="col-span-12 md:col-span-3 space-y-4">
+            <div class="sim-panel p-4">
+                <h3 class="pixel-font text-xl border-b-2 border-gray-400 mb-3">CITY FUNDS</h3>
+                <div class="stat-led" id="budget-val">$10,000,000</div>
+                <div class="mt-4 text-[10px] font-bold text-gray-600 uppercase">Approval Rating</div>
+                <div class="w-full bg-gray-400 h-4 border-2 border-gray-600 mt-1">
+                    <div id="rep-fill" class="h-full bg-orange-500 transition-all duration-500" style="width: 50%"></div>
+                </div>
+            </div>
+
+            <div class="sim-panel p-4">
+                <h3 class="pixel-font text-xl border-b-2 border-gray-400 mb-3">ENV. POLLUTION</h3>
+                <div class="stat-led !text-red-500 !shadow-red-500" id="carbon-val">0 KG</div>
+                <p class="text-[10px] mt-2 text-gray-500 leading-tight">GWP: GLOBAL WARMING POTENTIAL (LCA TARGET)</p>
+            </div>
+
+            <div class="sim-panel p-4 bg-blue-100">
+                <h3 class="pixel-font text-xl border-b-2 border-blue-300 mb-2">QUICK TIPS</h3>
+                <p id="advisor-tip" class="text-xs text-blue-800 italic">"Materials like timber sequester carbon, effectively acting as a carbon sink for the city!"</p>
+            </div>
+        </div>
+
+        <!-- Center Stage -->
+        <div class="col-span-12 md:col-span-9">
+            <div id="decision-card" class="sim-panel p-8 min-h-[400px] relative overflow-hidden">
+                <!-- Decorative Isometric Grid Background for Card -->
+                <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <span id="phase-display" class="bg-blue-800 text-white text-xs px-2 py-1 pixel-font uppercase">ZONE: STRUCTURAL</span>
+                            <h2 id="question-title" class="text-4xl font-black uppercase mt-2 tracking-tighter italic text-gray-800">The Skeleton</h2>
+                        </div>
+                        <div id="turn-display" class="pixel-font text-3xl text-gray-400">01</div>
+                    </div>
+
+                    <p id="question-desc" class="text-gray-700 text-lg mb-8 leading-relaxed font-medium bg-white/50 p-4 border-l-4 border-gray-400">
+                        Initial text loading...
+                    </p>
+
+                    <div id="options-container" class="grid grid-cols-1 gap-4">
+                        <!-- Options injected here -->
+                    </div>
+
+                    <!-- Feedback Area -->
+                    <div id="feedback-panel" class="hidden animate-pulse">
+                        <div class="bg-white border-4 border-blue-600 p-6 shadow-lg">
+                            <h3 class="pixel-font text-2xl text-blue-800 mb-2 underline">OFFICE OF SUSTAINABILITY REPORT:</h3>
+                            <p id="feedback-text" class="text-lg font-bold text-gray-800"></p>
+                            <button onclick="nextTurn()" class="mt-6 sim-button w-full py-4 text-xl font-black uppercase bg-orange-500 text-white hover:bg-orange-600">
+                                Confirm & Proceed >>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- End Screen (Hidden by default) -->
+            <div id="end-screen" class="hidden sim-panel p-12 text-center">
+                <h2 class="pixel-font text-6xl text-blue-900 mb-6">PROJECT ARCHIVED</h2>
+                <div id="final-stats" class="bg-black text-green-400 p-8 font-mono text-left inline-block border-4 border-gray-600 shadow-2xl">
+                </div>
+                <div class="mt-8">
+                    <button onclick="location.reload()" class="sim-button bg-blue-700 text-white px-12 py-4 text-2xl font-black italic">RE-INITIALIZE SIM</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const gameData = [
+            {
+                phase: "A1-A3: PRODUCTION",
+                title: "Structural Frame",
+                desc: "The University Board is reviewing structural options. Embodied carbon (Modules A1-A3) is locked in at the moment of purchase. Which path will UF take?",
+                options: [
+                    {
+                        label: "Heavy Reinforced Concrete",
+                        feedback: "Standard for Florida. Cement calcination emits significant CO2, but it's hurricane-proof. High embodied impact.",
+                        carbon: 850, budget: -1.5, rep: 0, tip: "Concrete is durable but heavy on the climate."
+                    },
+                    {
+                        label: "Mass Timber (CLT)",
+                        feedback: "Revolutionary! Trees sequestered carbon while growing. This project will be a sustainable landmark for UF.",
+                        carbon: 180, budget: -2.8, rep: 25, tip: "Wood stores carbon, but watch your budget!"
+                    },
+                    {
+                        label: "Recycled Steel",
+                        feedback: "A balanced approach. Using electric arc furnaces for recycling saves energy compared to blast furnaces.",
+                        carbon: 450, budget: -2.0, rep: 10, tip: "Steel is 100% recyclable, helping future LCAs."
+                    }
+                ]
+            },
+            {
+                phase: "B1-B5: USE PHASE",
+                title: "The Envelope",
+                desc: "Gainesville heat is brutal. The 'Use Phase' (Module B) of your LCA will span 50 years. How do we keep the fossils cool?",
+                options: [
+                    {
+                        label: "Standard Glass Walls",
+                        feedback: "Low upfront cost, but the 'Operational Carbon' will haunt your LCA reports for decades due to AC demand.",
+                        carbon: 1500, budget: -0.5, rep: -10, tip: "Cheap glass leads to expensive cooling bills."
+                    },
+                    {
+                        label: "Electrochromic Smart Tinting",
+                        feedback: "High tech! The glass tints based on sun position, slashing the operational energy footprint.",
+                        carbon: 350, budget: -1.8, rep: 15, tip: "Smart tech pays off in the long run."
+                    }
+                ]
+            },
+            {
+                phase: "B6: ENERGY",
+                title: "Grid vs Green",
+                desc: "How will we power the exhibits? This choice determines your annual carbon recurring costs.",
+                options: [
+                    {
+                        label: "Local Utility Grid",
+                        feedback: "Reliable, but you're at the mercy of the current energy mix. Operational carbon remains high.",
+                        carbon: 1200, budget: 0, rep: -5, tip: "The grid is only as clean as the power plants."
+                    },
+                    {
+                        label: "Solar Canopy Park",
+                        feedback: "The museum becomes a net-generator. Massive reduction in Module B6 (Operational Energy).",
+                        carbon: 200, budget: -2.5, rep: 20, tip: "The Florida sun is free energy, Mayor!"
+                    }
+                ]
+            },
+            {
+                phase: "C1-C4: END OF LIFE",
+                title: "Deconstruction",
+                desc: "What happens in 2100? Cradle-to-Grave LCA requires we plan for the museum's eventual dismantling.",
+                options: [
+                    {
+                        label: "Traditional Demolition",
+                        feedback: "Quick and cheap now, but high carbon cost in 75 years as everything goes to the Alachua County landfill.",
+                        carbon: 700, budget: 0, rep: -5, tip: "Landfills are the end of the line for materials."
+                    },
+                    {
+                        label: "Modular Design (DfD)",
+                        feedback: "Excellent planning. Components can be unbolted and reused, giving a 'Module D' credit for future systems.",
+                        carbon: -150, budget: -1.2, rep: 15, tip: "Design for Disassembly is the future of UF."
+                    }
+                ]
+            }
+        ];
+
+        let currentTurn = 0;
+        let stats = {
+            carbon: 0,
+            budget: 10.0,
+            rep: 50
+        };
+
+        const tickerMessages = [
+            "NEWS: UF RESEARCHERS DISCOVER NEW LOW-CARBON CEMENT MIX...",
+            "ECONOMY: MATERIAL COSTS RISING NATIONWIDE...",
+            "WEATHER: ANOTHER HOT SUMMER IN GAINESVILLE INCREASES COOLING DEMAND...",
+            "CAMPUS: STUDENTS PROTEST FOR GREENER BUILDINGS...",
+            "SPORTS: GATORS WIN! SPIRIT AT ALL TIME HIGH...",
+            "CITIZENS: 'WE WANT A MUSEUM THAT LASTS 100 YEARS!'"
+        ];
+
+        function updateUI() {
+            // Stats Update
+            document.getElementById('budget-val').innerText = `$${(stats.budget * 1000000).toLocaleString()}`;
+            document.getElementById('carbon-val').innerText = `${stats.carbon.toLocaleString()} KG`;
+            document.getElementById('rep-fill').style.width = `${stats.rep}%`;
+
+            // Ticker Update
+            const ticker = document.getElementById('ticker');
+            ticker.innerText = tickerMessages[Math.floor(Math.random() * tickerMessages.length)] + " | " + ticker.innerText;
+
+            if (currentTurn < gameData.length) {
+                const data = gameData[currentTurn];
+                document.getElementById('turn-display').innerText = (currentTurn + 1).toString().padStart(2, '0');
+                document.getElementById('phase-display').innerText = `ZONE: ${data.phase}`;
+                document.getElementById('question-title').innerText = data.title;
+                document.getElementById('question-desc').innerText = data.desc;
+                document.getElementById('advisor-tip').innerText = `"${data.options[0].tip}"`;
+
+                const container = document.getElementById('options-container');
+                container.innerHTML = '';
+                data.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "sim-button p-4 text-left flex justify-between items-center group hover:bg-white";
+                    btn.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="text-xl font-black italic uppercase">${opt.label}</span>
+                        </div>
+                        <div class="pixel-font text-lg text-gray-600">
+                            $${Math.abs(opt.budget)}M
+                        </div>
+                    `;
+                    btn.onclick = () => selectOption(idx);
+                    container.appendChild(btn);
+                });
+            } else {
+                showEndScreen();
+            }
+        }
+
+        function selectOption(idx) {
+            const opt = gameData[currentTurn].options[idx];
+            stats.carbon += opt.carbon;
+            stats.budget += opt.budget;
+            stats.rep = Math.max(0, Math.min(100, stats.rep + opt.rep));
+
+            document.getElementById('options-container').classList.add('hidden');
+            document.getElementById('question-desc').classList.add('hidden');
+            document.getElementById('feedback-panel').classList.remove('hidden');
+            document.getElementById('feedback-text').innerText = opt.feedback;
+        }
+
+        function nextTurn() {
+            currentTurn++;
+            document.getElementById('options-container').classList.remove('hidden');
+            document.getElementById('question-desc').classList.remove('hidden');
+            document.getElementById('feedback-panel').classList.add('hidden');
+            
+            if (stats.budget <= 0) {
+                document.getElementById('decision-card').innerHTML = `
+                    <div class="text-center py-20">
+                        <h2 class="pixel-font text-6xl text-red-600">BANKRUPT</h2>
+                        <p class="text-xl">THE UNIVERSITY HAS REVOKED YOUR CHARTER.</p>
+                        <button onclick="location.reload()" class="mt-8 sim-button bg-red-600 text-white p-4">RESTART SIM</button>
+                    </div>
+                `;
+            } else {
+                updateUI();
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById('decision-card').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            
+            let grade = "F";
+            if (stats.carbon < 1500) grade = "A+";
+            else if (stats.carbon < 2500) grade = "B";
+            else if (stats.carbon < 3500) grade = "C";
+
+            document.getElementById('final-stats').innerHTML = `
+                <p>> CALCULATING LIFE CYCLE IMPACT...</p>
+                <p>> ANALYZING GWP (GLOBAL WARMING POTENTIAL)...</p>
+                <p class="text-white mt-4 underline">FINAL REPORT:</p>
+                <p>TOTAL EMBODIED CARBON: ${stats.carbon} KG CO2e</p>
+                <p>UF ENDOWMENT REMAINING: $${stats.budget.toFixed(2)}M</p>
+                <p>CAMPUS APPROVAL RATING: ${stats.rep}%</p>
+                <div class="mt-6 border-2 border-green-400 p-4">
+                    <p class="text-3xl font-bold">FINAL GRADE: ${grade}</p>
+                    <p class="text-sm mt-2">${grade === 'A+' ? 'The greenest building in SEC history!' : 'Needs improvement in material circularity.'}</p>
+                </div>
+            `;
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
